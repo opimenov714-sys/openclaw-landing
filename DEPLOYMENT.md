@@ -57,8 +57,8 @@ vercel
 
 | Name | Value |
 |------|-------|
-| `TELEGRAM_BOT_TOKEN` | `8694312474:AAH0wUOXW2AsAu6TjNZSjO5CkEo1ebY-RDw` |
-| `TELEGRAM_CHAT_ID` | `5153626695` |
+| `TELEGRAM_BOT_TOKEN` | `ваш_bot_token_здесь` |
+| `TELEGRAM_CHAT_ID` | `ваш_chat_id_здесь` |
 
 4. Нажми **"Deploy"** (Vercel перезагрузит проект с новыми переменными)
 
