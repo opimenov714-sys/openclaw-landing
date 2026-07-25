@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenClaw - Заказ AI-Агентов На Любые Задачи</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Space+Mono:wght@400;700&display=swap');
+
+        body {
+            font-family: 'Space Mono', monospace;
+            background: linear-gradient(135deg, #050810 0%, #0A0E27 50%, #050810 100%);
+            color: #E0E0E0;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0, 0, 0, 0.15),
+                rgba(0, 0, 0, 0.15) 2px,
+                transparent 2px,
+                transparent 4px
+            );
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        .glow-text {
+            text-shadow: 0 0 10px #00FFFF, 0 0 20px #0099FF, 0 0 30px #00FFFF;
+            color: #00FFFF;
+        }
+
+        .glow-text-pulse {
+            animation: glowPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes glowPulse {
+            0%, 100% {
+                text-shadow: 0 0 10px #00FFFF, 0 0 20px #0099FF, 0 0 30px #00FFFF;
+                color: #00FFFF;
+            }
+            50% {
+                text-shadow: 0 0 20px #00FFFF, 0 0 40px #0099FF, 0 0 60px #00FFFF;
+                color: #00FFFF;
+            }
+        }
+
+        .glow-text-magenta {
+            text-shadow: 0 0 10px #FF00FF, 0 0 20px #9D00FF, 0 0 30px #FF00FF;
+            color: #FF00FF;
+        }
+
+        .glow-text-pink {
+            text-shadow: 0 0 10px #FF0080, 0 0 20px #FF1493;
+            color: #FF1493;
+        }
+
+        .neon-border {
+            border: 2px solid;
+            border-image: linear-gradient(135deg, #00FFFF, #FF00FF, #39FF14) 1;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.3), inset 0 0 20px rgba(0, 255, 255, 0.1);
+        }
+
+        .neon-border-cyan {
+            border: 2px solid #00FFFF;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5), inset 0 0 20px rgba(0, 255, 255, 0.2);
+        }
+
+        .neon-border-magenta {
+            border: 2px solid #FF00FF;
+            box-shadow: 0 0 20px rgba(255, 0, 255, 0.5), inset 0 0 20px rgba(255, 0, 255, 0.2);
+        }
+
+        .neon-border-pink {
+            border: 2px solid #FF1493;
+            box-shadow: 0 0 20px rgba(255, 20, 147, 0.5), inset 0 0 20px rgba(255, 20, 147, 0.2);
+        }
+
+        .btn-glow {
+            transition: all 0.3s ease;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .btn-cyan {
+            background: linear-gradient(135deg, #00FFFF, #0099FF);
+            color: #0A0E27;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.6);
+        }
+
+        .btn-cyan:hover {
+            box-shadow: 0 0 40px rgba(0, 255, 255, 0.9), 0 0 60px rgba(0, 255, 255, 0.6);
+            transform: translateY(-3px);
+        }
+
+        .btn-magenta {
+            background: linear-gradient(135deg, #FF00FF, #9D00FF);
+            color: #FFF;
+            box-shadow: 0 0 20px rgba(255, 0, 255, 0.6);
+        }
+
+        .btn-magenta:hover {
+            box-shadow: 0 0 40px rgba(255, 0, 255, 0.9), 0 0 60px rgba(255, 0, 255, 0.6);
+            transform: translateY(-3px);
+        }
+
+        .card-glow {
+            background: rgba(26, 31, 58, 0.6);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .card-glow:hover {
+            transform: translateY(-10px);
+            background: rgba(26, 31, 58, 0.9);
+        }
+
+        .orbitron {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 900;
+            letter-spacing: 3px;
+        }
+
+        .scanlines {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .scanlines::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0, 0, 0, 0.1),
+                rgba(0, 0, 0, 0.1) 1px,
+                transparent 1px,
+                transparent 2px
+            );
+            pointer-events: none;
+        }
+
+        .grid-bg {
+            background-color: transparent;
+            background-image:
+                linear-gradient(0deg, transparent 24%, rgba(0, 255, 255, 0.05) 25%, rgba(0, 255, 255, 0.05) 26%, transparent 27%, transparent 74%, rgba(0, 255, 255, 0.05) 75%, rgba(0, 255, 255, 0.05) 76%, transparent 77%, transparent),
+                linear-gradient(90deg, transparent 24%, rgba(0, 255, 255, 0.05) 25%, rgba(0, 255, 255, 0.05) 26%, transparent 27%, transparent 74%, rgba(0, 255, 255, 0.05) 75%, rgba(0, 255, 255, 0.05) 76%, transparent 77%, transparent);
+            background-size: 50px 50px;
+        }
+
+        .price-card {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .price-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, transparent, rgba(0, 255, 255, 0.1), transparent);
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%) translateY(-100%); }
+            100% { transform: translateX(100%) translateY(100%); }
+        }
+
+        .feature-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, rgba(0, 255, 255, 0.2), rgba(255, 0, 255, 0.2));
+            border-radius: 8px;
+            font-size: 28px;
+        }
+
+        input, textarea {
+            background: rgba(26, 31, 58, 0.5) !important;
+            border: 1px solid rgba(0, 255, 255, 0.3) !important;
+            color: #E0E0E0 !important;
+            transition: all 0.3s ease;
+        }
+
+        input:focus, textarea:focus {
+            border-color: #00FFFF !important;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.3) !important;
+        }
+
+        input::placeholder, textarea::placeholder {
+            color: rgba(224, 224, 224, 0.5) !important;
+        }
+    </style>
+</head>
+<body class="grid-bg">
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full bg-gradient-to-b from-[#0A0E27] to-transparent z-50 py-4 px-6 border-b border-[#00FFFF]/20">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="orbitron text-2xl glow-text">◇ OPENCLAW ◇</div>
+            <div class="flex gap-8 items-center">
+                <a href="#features" class="text-[#E0E0E0] hover:text-[#00FFFF] transition">Возможности</a>
+                <a href="#pricing" class="text-[#E0E0E0] hover:text-[#00FFFF] transition">Тарифы</a>
+                <a href="#contact" class="text-[#E0E0E0] hover:text-[#00FFFF] transition">Контакты</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="min-h-screen flex items-center justify-center pt-20 px-4 relative overflow-hidden scanlines">
+        <div class="absolute inset-0 opacity-10">
+            <div class="absolute top-20 left-20 w-72 h-72 bg-[#00FFFF] rounded-full filter blur-3xl"></div>
+            <div class="absolute bottom-40 right-20 w-72 h-72 bg-[#FF00FF] rounded-full filter blur-3xl"></div>
+        </div>
+
+        <div class="max-w-5xl mx-auto text-center relative z-10">
+            <div class="mb-6 inline-block neon-border-cyan px-6 py-2 rounded text-[#00FFFF] text-sm tracking-widest">
+                ⚡ NEXT-GEN AI AGENTS
+            </div>
+
+            <h1 class="orbitron text-7xl md:text-8xl mb-6 leading-tight">
+                <span class="glow-text glow-text-pulse">AI</span>-<span class="glow-text-magenta">АГЕНТЫ</span><br>
+                <span class="glow-text-pink">НА ЛЮБЫЕ</span> <span class="glow-text glow-text-pulse">ЗАДАЧИ</span>
+            </h1>
+
+            <p class="text-xl md:text-2xl text-[#D0D0E0] mb-12 max-w-3xl mx-auto leading-relaxed font-light">
+                Развертываем готовые AI-агенты для вашего бизнеса за часы.
+                Простая интеграция, доступные цены, полная поддержка.
+            </p>
+
+            <div class="flex flex-col sm:flex-row gap-6 justify-center mb-20">
+                <a href="#contact" class="btn-glow btn-cyan px-10 py-4 rounded-lg text-lg">
+                    Начать Сейчас
+                </a>
+                <a href="#features" class="btn-glow border-2 border-[#00FFFF] px-10 py-4 rounded-lg text-lg text-[#00FFFF] hover:bg-[#00FFFF]/10 transition" style="box-shadow: 0 0 15px rgba(0, 255, 255, 0.5); text-shadow: 0 0 8px rgba(0, 255, 255, 0.6);">
+                    Узнать Больше
+                </a>
+            </div>
+
+            <div class="grid grid-cols-3 gap-8 mt-20">
+                <div class="text-center">
+                    <div class="text-4xl glow-text mb-2">⚡</div>
+                    <p class="text-[#B0B0B0]">Развертывание<br>за часы</p>
+                </div>
+                <div class="text-center">
+                    <div class="text-4xl glow-text-magenta mb-2">💎</div>
+                    <p class="text-[#B0B0B0]">Готовые<br>шаблоны</p>
+                </div>
+                <div class="text-center">
+                    <div class="text-4xl glow-text-pink mb-2">🔧</div>
+                    <p class="text-[#B0B0B0]">24/7<br>Поддержка</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="py-32 px-4 relative">
+        <div class="max-w-6xl mx-auto">
+            <div class="text-center mb-20">
+                <h2 class="orbitron text-6xl mb-4">
+                    <span class="glow-text">ЧТО МЫ</span> <span class="glow-text-magenta">ПРЕДЛАГАЕМ</span>
+                </h2>
+                <div class="h-1 w-32 bg-gradient-to-r from-[#00FFFF] to-[#FF00FF] mx-auto"></div>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-8">
+                <!-- Feature 1 -->
+                <div class="card-glow neon-border p-8 rounded-lg">
+                    <div class="feature-icon mb-6">
+                        <span>🤖</span>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-4 text-[#00FFFF]">AI-АГЕНТЫ</h3>
+                    <p class="text-[#B0B0B0] leading-relaxed">
+                        Готовые к использованию AI-агенты для автоматизации ваших бизнес-процессов. От чат-ботов до аналитических инструментов.
+                    </p>
+                </div>
+
+                <!-- Feature 2 -->
+                <div class="card-glow neon-border p-8 rounded-lg">
+                    <div class="feature-icon mb-6">
+                        <span>⚙️</span>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-4 text-[#FF1493]">ПРОСТАЯ ИНТЕГРАЦИЯ</h3>
+                    <p class="text-[#B0B0B0] leading-relaxed">
+                        Интегрируйте агентов в вашу систему за считанные минуты. API-первый подход, полная документация и примеры кода.
+                    </p>
+                </div>
+
+                <!-- Feature 3 -->
+                <div class="card-glow neon-border p-8 rounded-lg">
+                    <div class="feature-icon mb-6">
+                        <span>💰</span>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-4 text-[#00FFFF]">ДОСТУПНЫЕ ЦЕНЫ</h3>
+                    <p class="text-[#B0B0B0] leading-relaxed">
+                        Гибкие тарифы на подписку для бизнеса любого размера. Платите только за то, что используете. Никаких скрытых платежей.
+                    </p>
+                </div>
+
+                <!-- Feature 4 -->
+                <div class="card-glow neon-border p-8 rounded-lg">
+                    <div class="feature-icon mb-6">
+                        <span>📦</span>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-4 text-[#FF1493]">ГОТОВЫЕ ШАБЛОНЫ</h3>
+                    <p class="text-[#B0B0B0] leading-relaxed">
+                        Библиотека готовых решений для чат-ботов, FAQ, аналитики, обработки заказов и многого другого.
+                    </p>
+                </div>
+
+                <!-- Feature 5 -->
+                <div class="card-glow neon-border p-8 rounded-lg">
+                    <div class="feature-icon mb-6">
+                        <span>🛡️</span>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-4 text-[#00FFFF]">ПОЛНАЯ ПОДДЕРЖКА</h3>
+                    <p class="text-[#B0B0B0] leading-relaxed">
+                        Команда экспертов доступна 24/7 для помощи. Быстрые ответы на вопросы, техническая поддержка, консультации.
+                    </p>
+                </div>
+
+                <!-- Feature 6 -->
+                <div class="card-glow neon-border p-8 rounded-lg">
+                    <div class="feature-icon mb-6">
+                        <span>📊</span>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-4 text-[#FF1493]">АНАЛИТИКА И МОНИТОРИНГ</h3>
+                    <p class="text-[#B0B0B0] leading-relaxed">
+                        Подробная статистика работы агентов, отслеживание производительности и оптимизация в реальном времени.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Use Cases Section -->
+    <section class="py-32 px-4 bg-gradient-to-b from-transparent to-[#0A0E27]/50">
+        <div class="max-w-6xl mx-auto">
+            <div class="text-center mb-20">
+                <h2 class="orbitron text-6xl mb-4">
+                    <span class="glow-text-magenta">ПРИМЕРЫ</span> <span class="glow-text">ИСПОЛЬЗОВАНИЯ</span>
+                </h2>
+                <div class="h-1 w-32 bg-gradient-to-r from-[#FF00FF] to-[#00FFFF] mx-auto"></div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-12">
+                <!-- Use Case 1 -->
+                <div class="neon-border-cyan p-8 rounded-lg">
+                    <h3 class="text-3xl font-bold mb-4 text-[#00FFFF]">💬 ЧАТ-БОТЫ</h3>
+                    <p class="text-[#B0B0B0] mb-4">
+                        Автоматизируйте общение с клиентами. Ответьте на 90% вопросов без участия человека.
+                    </p>
+                    <ul class="space-y-2 text-[#B0B0B0]">
+                        <li>✓ Поддержка клиентов 24/7</li>
+                        <li>✓ Многоязычная поддержка</li>
+                        <li>✓ Умная маршрутизация к агентам</li>
+                        <li>✓ Интеграция с CRM</li>
+                    </ul>
+                </div>
+
+                <!-- Use Case 2 -->
+                <div class="neon-border-magenta p-8 rounded-lg">
+                    <h3 class="text-3xl font-bold mb-4 text-[#FF1493]">📋 АВТОМАТИЗАЦИЯ ПРОЦЕССОВ</h3>
+                    <p class="text-[#B0B0B0] mb-4">
+                        Автоматизируйте рутинные операции и освободите время для важных задач.
+                    </p>
+                    <ul class="space-y-2 text-[#B0B0B0]">
+                        <li>✓ Обработка заказов</li>
+                        <li>✓ Управление задачами</li>
+                        <li>✓ Сортировка данных</li>
+                        <li>✓ Отправка уведомлений</li>
+                    </ul>
+                </div>
+
+                <!-- Use Case 3 -->
+                <div class="neon-border-cyan p-8 rounded-lg">
+                    <h3 class="text-3xl font-bold mb-4 text-[#00FFFF]">📊 АНАЛИТИКА И ОТЧЕТЫ</h3>
+                    <p class="text-[#B0B0B0] mb-4">
+                        Получайте insights из ваших данных автоматически.
+                    </p>
+                    <ul class="space-y-2 text-[#B0B0B0]">
+                        <li>✓ Генерация отчетов</li>
+                        <li>✓ Анализ тренов</li>
+                        <li>✓ Предсказательная аналитика</li>
+                        <li>✓ Визуализация данных</li>
+                    </ul>
+                </div>
+
+                <!-- Use Case 4 -->
+                <div class="neon-border-magenta p-8 rounded-lg">
+                    <h3 class="text-3xl font-bold mb-4 text-[#FF1493]">🔍 ОБРАБОТКА ДОКУМЕНТОВ</h3>
+                    <p class="text-[#B0B0B0] mb-4">
+                        Интеллектуальная обработка и классификация документов.
+                    </p>
+                    <ul class="space-y-2 text-[#B0B0B0]">
+                        <li>✓ Извлечение данных</li>
+                        <li>✓ Классификация документов</li>
+                        <li>✓ Проверка соответствия</li>
+                        <li>✓ Автоматическая архивизация</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section id="pricing" class="py-32 px-4">
+        <div class="max-w-6xl mx-auto">
+            <div class="text-center mb-20">
+                <h2 class="orbitron text-6xl mb-4">
+                    <span class="glow-text">ТАРИФНЫЕ</span> <span class="glow-text-magenta">ПЛАНЫ</span>
+                </h2>
+                <p class="text-[#B0B0B0] text-xl">Гибкие подписки для любого бизнеса</p>
+                <div class="h-1 w-32 bg-gradient-to-r from-[#00FFFF] to-[#FF00FF] mx-auto mt-6"></div>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-8">
+                <!-- Starter Plan -->
+                <div class="price-card neon-border-cyan p-8 rounded-lg relative">
+                    <h3 class="text-3xl font-bold mb-2 text-[#00FFFF]">STARTER</h3>
+                    <p class="text-[#B0B0B0] mb-8">Для стартапов и небольших проектов</p>
+
+                    <div class="mb-8">
+                        <div class="text-5xl font-bold text-[#00FFFF] mb-2">$29</div>
+                        <p class="text-[#B0B0B0]">/месяц</p>
+                    </div>
+
+                    <ul class="space-y-4 mb-8">
+                        <li class="flex items-center gap-3 text-[#B0B0B0]">
+                            <span class="text-[#00FFFF]">✓</span> 1 AI-агент
+                        </li>
+                        <li class="flex items-center gap-3 text-[#B0B0B0]">
+                            <span class="text-[#00FFFF]">✓</span> До 10,000 запросов/месяц
+                        </li>
+                        <li class="flex items-center gap-3 text-[#B0B0B0]">
+                            <span class="text-[#00FFFF]">✓</span> Email поддержка
+                        </li>
+                        <li class="flex items-center gap-3 text-[#B0B0B0]">
+                            <span class="text-[#00FFFF]">✓</span> Базовая аналитика
+                        </li>
+                        <li class="flex items-center gap-3 text-[#A0A0A0]">
+                            <span class="text-[#505050]">✗</span> Интеграция API
+                        </li>
+                    </ul>
+
+                    <button class="btn-glow btn-cyan w-full py-3 rounded-lg">
+                        Выбрать План
+                    </button>
+                </div>
+
+                <!-- Professional Plan (Featured) -->
+                <div class="price-card neon-border-magenta p-8 rounded-lg relative border-2 transform md:scale-105">
+                    <div class="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                        <span class="bg-gradient-to-r from-[#FF00FF] to-[#9D00FF] px-4 py-1 rounded-full text-sm font-bold text-white">
+                            ПОПУЛЯРНО
+                        </span>
+                    </div>
+
+                    <h3 class="text-3xl font-bold mb-2 text-[#FF1493]">PROFESSIONAL</h3>
+                    <p class="text-[#B0B0B0] mb-8">Для растущих компаний</p>
+
+                    <div class="mb-8">
+                        <div class="text-5xl font-bold text-[#FF1493] mb-2">$99</div>
+                        <p class="text-[#B0B0B0]">/месяц</p>
+                    </div>
+
+                    <ul class="space-y-4 mb-8">
+                        <li class="flex items-center gap-3 text-[#B0B0B0]">
+                            <span class="text-[#FF1493]">✓</span> До 5 AI-агентов
+                        </li>
+                        <li class="flex items-center gap-3 text-[#B0B0B0]">
+                            <span class="text-[#FF1493]">✓</span> До 100,000 запросов/месяц
+                        </li>
+                        <li class="flex items-center gap-3 text-[#B0B0B0]">
+                            <span class="text-[#FF1493]">✓</span> Приоритетная поддержка
+                        </li>
+                        <li class="flex items-center gap-3 text-[#B0B0B0]">
+                            <span class="text-[#FF1493]">✓</span> Полная аналитика
+                        </li>
+                        <li class="flex items-center gap-3 text-[#B0B0B0]">
+                            <span class="text-[#FF1493]">✓</span> API Интеграция
+                        </li>
+                    </ul>
+
+                    <button class="btn-glow btn-magenta w-full py-3 rounded-lg">
+                        Выбрать План
+                    </button>
+                </div>
+
+                <!-- Enterprise Plan -->
+                <div class="price-card neon-border p-8 rounded-lg relative">
+                    <h3 class="text-3xl font-bold mb-2 text-[#39FF14]">ENTERPRISE</h3>
+                    <p class="text-[#B0B0B0] mb-8">Для крупных компаний</p>
+
+                    <div class="mb-8">
+                        <div class="text-5xl font-bold text-[#39FF14] mb-2">$499+</div>
+                        <p class="text-[#B0B0B0]">/месяц</p>
+                    </div>
+
+                    <ul class="space-y-4 mb-8">
+                        <li class="flex items-center gap-3 text-[#B0B0B0]">
+                            <span class="text-[#39FF14]">✓</span> Неограниченные агенты
+                        </li>
+                        <li class="flex items-center gap-3 text-[#B0B0B0]">
+                            <span class="text-[#39FF14]">✓</span> Неограниченные запросы
+                        </li>
+                        <li class="flex items-center gap-3 text-[#B0B0B0]">
+                            <span class="text-[#39FF14]">✓</span> 24/7 телефонная поддержка
+                        </li>
+                        <li class="flex items-center gap-3 text-[#B0B0B0]">
+                            <span class="text-[#39FF14]">✓</span> Выделенный менеджер
+                        </li>
+                        <li class="flex items-center gap-3 text-[#B0B0B0]">
+                            <span class="text-[#39FF14]">✓</span> Кастомизация и SLA
+                        </li>
+                    </ul>
+
+                    <button class="btn-glow btn-cyan w-full py-3 rounded-lg">
+                        Связаться с Нами
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="py-32 px-4 relative overflow-hidden">
+        <div class="absolute inset-0 opacity-5">
+            <div class="absolute top-1/2 right-1/4 w-96 h-96 bg-[#00FFFF] rounded-full filter blur-3xl"></div>
+        </div>
+
+        <div class="max-w-4xl mx-auto relative z-10">
+            <div class="text-center mb-16">
+                <h2 class="orbitron text-6xl mb-4">
+                    <span class="glow-text">ГОТОВЫ</span> <span class="glow-text-magenta">НАЧАТЬ?</span>
+                </h2>
+                <p class="text-[#B0B0B0] text-xl">Оставьте заявку и мы свяжемся с вами в течение 24 часов</p>
+                <div class="h-1 w-32 bg-gradient-to-r from-[#00FFFF] to-[#FF00FF] mx-auto mt-6"></div>
+            </div>
+
+            <div class="neon-border p-12 rounded-lg bg-[#0A0E27]/80 backdrop-blur">
+                <form id="contactForm" class="space-y-6">
+
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-[#00FFFF] font-bold mb-2">ИМЯ</label>
+                            <input
+                                type="text"
+                                name="name"
+                                placeholder="Ваше имя"
+                                required
+                                class="w-full px-4 py-3 rounded-lg focus:outline-none"
+                            >
+                        </div>
+                        <div>
+                            <label class="block text-[#FF1493] font-bold mb-2">EMAIL</label>
+                            <input
+                                type="email"
+                                name="email"
+                                placeholder="ваш@email.com"
+                                required
+                                class="w-full px-4 py-3 rounded-lg focus:outline-none"
+                            >
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-[#00FFFF] font-bold mb-2">КОМПАНИЯ</label>
+                        <input
+                            type="text"
+                            name="company"
+                            placeholder="Название компании"
+                            required
+                            class="w-full px-4 py-3 rounded-lg focus:outline-none"
+                        >
+                    </div>
+
+                    <div>
+                        <label class="block text-[#FF1493] font-bold mb-2">ТИП ПРОЕКТА</label>
+                        <select name="project_type" required class="w-full px-4 py-3 rounded-lg focus:outline-none">
+                            <option value="" disabled selected>Выберите тип проекта</option>
+                            <option value="chatbot">Чат-бот</option>
+                            <option value="automation">Автоматизация</option>
+                            <option value="analytics">Аналитика</option>
+                            <option value="documents">Обработка документов</option>
+                            <option value="custom">Другое</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-[#00FFFF] font-bold mb-2">СООБЩЕНИЕ</label>
+                        <textarea
+                            name="message"
+                            placeholder="Расскажите нам о вашем проекте..."
+                            rows="5"
+                            required
+                            class="w-full px-4 py-3 rounded-lg focus:outline-none resize-none"
+                        ></textarea>
+                    </div>
+
+                    <div class="flex items-center gap-3">
+                        <input type="checkbox" name="agree" id="agree" required class="w-5 h-5">
+                        <label for="agree" class="text-[#B0B0B0]">
+                            Я согласен с политикой конфиденциальности и условиями использования
+                        </label>
+                    </div>
+
+                    <button
+                        type="submit"
+                        id="submitBtn"
+                        class="btn-glow btn-magenta w-full py-4 rounded-lg text-lg"
+                    >
+                        Отправить Заявку
+                    </button>
+                    <div id="formMessage" class="mt-4 text-center hidden"></div>
+                </form>
+
+                <div class="mt-12 pt-8 border-t border-[#00FFFF]/20">
+                    <h3 class="text-[#00FFFF] font-bold mb-6">ДРУГИЕ СПОСОБЫ СВЯЗИ</h3>
+                    <div class="grid md:grid-cols-2 gap-8">
+                        <div>
+                            <p class="text-[#B0B0B0] mb-2">📧 Email:</p>
+                            <a href="mailto:contact@openclaw.io" class="text-[#FF1493] font-bold hover:text-[#00FFFF] transition">
+                                contact@openclaw.io
+                            </a>
+                        </div>
+                        <div>
+                            <p class="text-[#B0B0B0] mb-2">💬 Telegram:</p>
+                            <a href="https://t.me/openclaw" class="text-[#FF1493] font-bold hover:text-[#00FFFF] transition">
+                                @openclaw
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gradient-to-t from-[#0A0E27] to-transparent border-t border-[#00FFFF]/20 py-12 px-4">
+        <div class="max-w-6xl mx-auto">
+            <div class="grid md:grid-cols-4 gap-8 mb-8">
+                <div>
+                    <div class="orbitron text-xl glow-text mb-4">◇ OPENCLAW ◇</div>
+                    <p class="text-[#B0B0B0] text-sm">Развертывание AI-агентов для вашего бизнеса</p>
+                </div>
+                <div>
+                    <h4 class="text-[#00FFFF] font-bold mb-4">ПРОДУКТ</h4>
+                    <ul class="space-y-2 text-[#B0B0B0] text-sm">
+                        <li><a href="#features" class="hover:text-[#00FFFF] transition">Возможности</a></li>
+                        <li><a href="#pricing" class="hover:text-[#00FFFF] transition">Тарифы</a></li>
+                        <li><a href="#" class="hover:text-[#00FFFF] transition">Документация</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-[#FF1493] font-bold mb-4">КОМПАНИЯ</h4>
+                    <ul class="space-y-2 text-[#B0B0B0] text-sm">
+                        <li><a href="#" class="hover:text-[#FF1493] transition">О нас</a></li>
+                        <li><a href="#" class="hover:text-[#FF1493] transition">Блог</a></li>
+                        <li><a href="#" class="hover:text-[#FF1493] transition">Контакты</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-[#00FFFF] font-bold mb-4">ДОКУМЕНТЫ</h4>
+                    <ul class="space-y-2 text-[#B0B0B0] text-sm">
+                        <li><a href="#" class="hover:text-[#00FFFF] transition">Политика</a></li>
+                        <li><a href="#" class="hover:text-[#00FFFF] transition">Условия</a></li>
+                        <li><a href="#" class="hover:text-[#00FFFF] transition">Cookies</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="border-t border-[#00FFFF]/20 pt-8 text-center text-[#B0B0B0] text-sm">
+                <p>© 2026 OpenClaw. Все права защищены. | Развертывание AI-агентов нового поколения</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Smooth scroll for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+        });
+
+        // Form submission to Telegram API
+        const form = document.getElementById('contactForm');
+        if (form) {
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+
+                const submitBtn = document.getElementById('submitBtn');
+                const formMessage = document.getElementById('formMessage');
+                const originalText = submitBtn.textContent;
+
+                submitBtn.textContent = 'Отправка...';
+                submitBtn.disabled = true;
+                formMessage.classList.add('hidden');
+
+                try {
+                    const formData = new FormData(form);
+                    const data = {
+                        name: formData.get('name'),
+                        email: formData.get('email'),
+                        company: formData.get('company'),
+                        project_type: formData.get('project_type'),
+                        message: formData.get('message')
+                    };
+
+                    const apiUrl = `${window.location.origin}/.netlify/functions/send-telegram`;
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+
+                    const result = await response.json();
+
+                    if (response.ok) {
+                        formMessage.classList.remove('hidden');
+                        formMessage.classList.add('text-[#39FF14]', 'font-bold', 'glow-text');
+                        formMessage.textContent = '✓ ' + result.message;
+                        form.reset();
+                        submitBtn.textContent = originalText;
+                        submitBtn.disabled = false;
+                    } else {
+                        throw new Error(result.error || 'Ошибка при отправке');
+                    }
+                } catch (error) {
+                    formMessage.classList.remove('hidden');
+                    formMessage.classList.add('text-[#FF1493]', 'font-bold');
+                    formMessage.textContent = '✗ Ошибка: ' + error.message + '. Пожалуйста, попробуйте позже.';
+                    submitBtn.textContent = originalText;
+                    submitBtn.disabled = false;
+                }
+            });
+        }
+
+        // Cursor tracking effect
+        document.addEventListener('mousemove', (e) => {
+            const x = e.clientX / window.innerWidth;
+            const y = e.clientY / window.innerHeight;
+            document.documentElement.style.setProperty('--mouse-x', x);
+            document.documentElement.style.setProperty('--mouse-y', y);
+        });
+    </script>
+</body>
+</html>
